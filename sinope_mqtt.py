@@ -52,7 +52,7 @@ def main_loop(py_sinope, mqttc, mqtt_server="localhost", mqtt_port=1883):
                 for thermostat in gateway.thermostats:
                     try:
                         thermostat.update()
-                    except requests.ConnectTimeout:
+                    except requests.exceptions.Timeout:
                         logging.warning("Thermostat {}({}) was unreachable".format(thermostat.name, thermostat.id))
                     else:
                         msg = json.dumps({
