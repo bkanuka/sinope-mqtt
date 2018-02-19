@@ -3,7 +3,7 @@
 
 __description__ = "Sinope thermostat MQTT bridge"
 __author__ = "Bennett Kanuka"
-__credits__ = ["Bennett Kanuka",]
+__credits__ = ["Bennett Kanuka"]
 __license__ = "MIT"
 __version__ = "0.9"
 __maintainer__ = "Bennett Kanuka"
@@ -76,6 +76,7 @@ def main_loop(py_sinope, mqttc, mqtt_server="localhost", mqtt_port=1883):
         mqttc.loop_stop()
         logging.debug("MQTT Loop stopped")
 
+
 def main():
     parser = argparse.ArgumentParser(description=__description__)
 
@@ -103,6 +104,12 @@ def main():
                         type=int,
                         default=10,
                         help="Neviweb communication timeout",
+                        )
+    parser.add_argument("--retry", "-r",
+                        required=False,
+                        type=int,
+                        default=5,
+                        help="Time to wait before retrying in case of connection error",
                         )
     parser.add_argument("--version",
                         action="version",
@@ -138,12 +145,11 @@ def main():
                       mqtt_port=args.mqtt_port)
         except KeyboardInterrupt:
             break
-        except requests.exceptions.ConnectionError:
-            logging.warning('ConnectionError', exc_info=True)
-            time.sleep(30)
-        except requests.exceptions.ReadTimeout:
-            logging.warning('ReadTimeout', exc_info=True)
-            time.sleep(30)
+        except (requests.exceptions.ConnectionError,
+                requests.exceptions.ReadTimeout):
+            logging.warning('Request Error', exc_info=True)
+            time.sleep(args.retry)
+
 
 if __name__ == "__main__":
     main()
